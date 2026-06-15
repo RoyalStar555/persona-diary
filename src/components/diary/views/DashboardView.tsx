@@ -24,14 +24,14 @@ export function DashboardView() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <Stat icon={<Pencil size={12} />} label="Total entries" value="124" sub="+3 this week" />
         <Stat icon={<Flame size={12} />} label="Streak" value={`${streak} 🔥`} sub="Best: 31 days" />
-        <Stat icon={<Letter />} label="Words written" value="48.2k" sub="Avg 390/entry" />
-        <Stat icon={<MoodSmile size={12} />} label="Happy days" value="78%" sub="This month" />
+        <Stat icon={<Type size={12} />} label="Words written" value="48.2k" sub="Avg 390/entry" />
+        <Stat icon={<Smile size={12} />} label="Happy days" value="78%" sub="This month" />
       </div>
 
       <div className="grid lg:grid-cols-[1fr_310px] gap-3.5">
         <div>
           <Card className="mb-3">
-            <CardTitle icon={<MoodSmile size={14} />}>Today's mood</CardTitle>
+            <CardTitle icon={<Smile size={14} />}>Today's mood</CardTitle>
             <div className="flex gap-1.5 flex-wrap">
               {MOODS.map((m, i) => (
                 <MoodChip key={m.label} {...m} selected={mood === i} onClick={() => setMood(i)} />
