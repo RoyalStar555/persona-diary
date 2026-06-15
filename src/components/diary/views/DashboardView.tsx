@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
-import { Clock, ChevronLeft, ChevronRight, Flame, MoodSmile, Pencil, LetterA } from "lucide-react";
-import { useDiary } from "./DiaryContext";
-import { MOODS } from "./types";
-import { Card, CardTitle, EntryItem, MoodChip } from "./primitives";
+import { Clock, ChevronLeft, ChevronRight, Flame, Smile, Pencil, Type } from "lucide-react";
+import { useDiary } from "../DiaryContext";
+import { MOODS } from "../types";
+import { Card, CardTitle, EntryItem, MoodChip } from "../primitives";
 
-const Letter = (props: any) => <span className="font-bold" {...props}>A</span>;
 
 export function DashboardView() {
   const { entries, setView, setEditEntry, streak } = useDiary();
