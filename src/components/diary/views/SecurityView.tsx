@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShieldCheck, Key, Fingerprint, EyeOff, CloudLock, Lock, Download } from "lucide-react";
+import { ShieldCheck, Key, Fingerprint, EyeOff, Cloud, Lock, Download } from "lucide-react";
 import { useDiary } from "../DiaryContext";
 import { Card, PageTitle } from "../primitives";
 
@@ -32,7 +32,7 @@ export function SecurityView() {
           <Toggle label="Hide preview on lock" defaultOn />
           <Toggle label="Screenshot block" defaultOn />
         </Sec>
-        <Sec icon={<CloudLock size={14} />} title="Backup" desc="Encrypted cloud backup.">
+        <Sec icon={<Cloud size={14} />} title="Backup" desc="Encrypted cloud backup.">
           <Toggle label="Auto encrypted backup" defaultOn />
           <button onClick={() => setView("export")} className="w-full justify-center flex items-center gap-1.5 text-xs mt-1.5 py-2 rounded-lg cursor-pointer"
             style={{ border: "1.5px solid var(--dy-bdr)", background: "var(--dy-card)", color: "var(--dy-tx2)" }}>

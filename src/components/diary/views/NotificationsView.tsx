@@ -1,11 +1,11 @@
-import { Flame, Smile, Bell, CloudCheck, Star } from "lucide-react";
+import { Flame, Smile, Bell, CloudUpload, Star } from "lucide-react";
 import { Card, PageTitle } from "../primitives";
 
 const items = [
   { icon: Flame, text: "Your 12-day writing streak is on fire! Keep going to beat your record of 31 days.", time: "Today, 8:00 AM" },
   { icon: Smile, text: "Monthly mood summary ready — you had 78% happy days in June so far.", time: "Today, 7:30 AM" },
   { icon: Bell, text: "Daily writing reminder — you haven't written today yet. Your streak is counting on you!", time: "Yesterday, 8:00 PM" },
-  { icon: CloudCheck, text: "Encrypted backup completed successfully. All 124 entries are safe.", time: "Yesterday, 3:12 AM" },
+  { icon: CloudUpload, text: "Encrypted backup completed successfully. All 124 entries are safe.", time: "Yesterday, 3:12 AM" },
   { icon: Star, text: "You wrote 3 entries this week — that's your best week this month!", time: "13 Jun, 11:00 PM" },
 ];
 
