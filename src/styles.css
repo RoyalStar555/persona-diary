@@ -142,3 +142,60 @@
     color: var(--color-foreground);
   }
 }
+
+/* ============ MyDiary design tokens (preserve original hex codes) ============ */
+:root {
+  --dy-bg: #FDF6EC;
+  --dy-surf: #FFF8F0;
+  --dy-card: #FFFFFF;
+  --dy-bdr: #E8D5B7;
+  --dy-a: #C8820A;
+  --dy-al: #FAC775;
+  --dy-ap: #FAEEDA;
+  --dy-terra: #A0522D;
+  --dy-tx: #2C1A0E;
+  --dy-tx2: #6B4226;
+  --dy-tx3: #9B7355;
+  --dy-green: #3B6D11;
+  --dy-red: #A32D2D;
+  --dy-blue: #185FA5;
+  --dy-purple: #534AB7;
+  --dy-r: 12px;
+}
+.dark {
+  --dy-bg: #1A1208;
+  --dy-surf: #221A0F;
+  --dy-card: #2A1F12;
+  --dy-bdr: #4A3520;
+  --dy-a: #EF9F27;
+  --dy-al: #C8820A;
+  --dy-ap: #33220A;
+  --dy-tx: #F5E6D0;
+  --dy-tx2: #C8A882;
+  --dy-tx3: #8A6E52;
+}
+
+html, body { background: var(--dy-bg); color: var(--dy-tx); transition: background .3s, color .3s; }
+
+.dy-font-sans { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+.dy-font-serif { font-family: Georgia, 'Times New Roman', serif; }
+.dy-font-mono { font-family: 'Courier New', Courier, monospace; }
+
+.dy-glass { background: color-mix(in oklab, var(--dy-card) 72%, transparent); backdrop-filter: blur(14px) saturate(140%); }
+
+.dy-card { background: var(--dy-card); border: 1.5px solid var(--dy-bdr); border-radius: var(--dy-r); transition: background .3s; }
+.dy-surf-bg { background: var(--dy-surf); }
+
+.dy-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.dy-scroll::-webkit-scrollbar-thumb { background: var(--dy-bdr); border-radius: 3px; }
+.dy-scroll::-webkit-scrollbar-thumb:hover { background: var(--dy-al); }
+
+@keyframes dy-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+.dy-pulse { animation: dy-pulse 1.1s infinite; }
+
+.dy-editor[contenteditable=true]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--dy-tx3);
+  pointer-events: none;
+}
+
