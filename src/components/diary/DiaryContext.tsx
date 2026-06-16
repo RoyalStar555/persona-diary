@@ -43,7 +43,7 @@ type Ctx = {
   signup: (u: string, p: string, pin: string) => Promise<{ ok: boolean; error?: string }>;
   login: (u: string, p: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
-  verifyPin: (pin: string) => boolean;
+  verifyPin: (pin: string) => Promise<boolean>;
   // security
   security: SecuritySettings;
   setSecurity: (patch: Partial<SecuritySettings>) => void;
@@ -214,21 +214,7 @@ export function DiaryProvider({ children }: { children: ReactNode }) {
     setView("auth");
   }, []);
 
-  const verifyPin = useCallback((pin: string) => {
-    // sync check using cached users
-    if (!user) return false;
-    const users = readJSON<Record<string, StoredUser>>(K.users, {});
-    const u = Object.values(users).find((x) => x.id === user.id);
-    if (!u) return false;
-    // sha256 is async — we precomputed; do sync compare via a side cache
-    // For correctness, do async-only via Promise. We'll use a sync workaround: stash latest pinHash on the user object client-side via window.
-    return (pinCacheRef.current[user.id] ? pinCacheRef.current[user.id] === u.pinHash : false);
-  }, [user]);
-
-  // sync pin cache: compute when user changes
-  const pinCacheRef = useRef<Record<string, string>>({});
-  // expose async helper:
-  const checkPinAsync = useCallback(async (pin: string) => {
+  const verifyPin = useCallback(async (pin: string) => {
     if (!user) return false;
     const users = readJSON<Record<string, StoredUser>>(K.users, {});
     const u = Object.values(users).find((x) => x.id === user.id);
@@ -236,8 +222,6 @@ export function DiaryProvider({ children }: { children: ReactNode }) {
     const h = await sha256(pin + ":" + user.id);
     return h === u.pinHash;
   }, [user]);
-  // attach for LockView consumption
-  (verifyPin as any).async = checkPinAsync;
 
   // -------- BIOMETRICS (WebAuthn) ----------
   const registerBiometric = useCallback(async () => {
