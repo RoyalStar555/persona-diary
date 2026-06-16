@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { AlertTriangle, Eraser } from "lucide-react";
 import { useDiary } from "../DiaryContext";
 import { Card, PageTitle } from "../primitives";
 import { Toggle } from "./SecurityView";
@@ -12,7 +14,10 @@ const SWATCHES: [string, string, string][] = [
 ];
 
 export function SettingsView() {
-  const { themeName, setTheme, dark, toggleDark } = useDiary();
+  const { themeName, setTheme, dark, toggleDark, factoryReset, clearDrafts, draft } = useDiary();
+  const [confirming, setConfirming] = useState(false);
+  const [draftMsg, setDraftMsg] = useState("");
+
   return (
     <div className="p-5">
       <PageTitle title="Customise" sub="Make your diary uniquely yours" />
@@ -52,10 +57,44 @@ export function SettingsView() {
         <Row label="Distraction-free mode" sub="Hide sidebar while writing">
           <Toggle label="" />
         </Row>
-        <Row label="Default export format" last>
+        <Row label="Default export format">
           <Sel options={["PDF", "Plain text (.txt)", "Markdown (.md)", "Encrypted archive"]} />
         </Row>
+        <Row label="Clear draft" sub={draft ? `${draft.length} characters in unsaved draft.` : "No unsaved draft."} last>
+          <button
+            onClick={() => { clearDrafts(); setDraftMsg("Draft cleared."); setTimeout(() => setDraftMsg(""), 2500); }}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg cursor-pointer"
+            style={{ border: "1.5px solid var(--dy-bdr)", background: "var(--dy-card)", color: "var(--dy-tx2)" }}>
+            <Eraser size={13} /> Clear unsaved draft
+          </button>
+        </Row>
+        {draftMsg && <div className="text-xs mt-1" style={{ color: "var(--dy-a)" }}>{draftMsg}</div>}
       </Card>
+
+      <div className="mt-5">
+        <Card style={{ borderColor: "#E5C0B5", background: "#FAECE7" }}>
+          <div className="text-[13px] font-semibold mb-1 flex items-center gap-1.5" style={{ color: "#7A1F0A" }}>
+            <AlertTriangle size={14} /> Danger zone
+          </div>
+          <p className="text-xs mb-3" style={{ color: "#7A1F0A" }}>
+            Factory reset will permanently erase all accounts, entries, drafts, themes and security settings stored in this browser.
+          </p>
+          {!confirming ? (
+            <button onClick={() => setConfirming(true)}
+              className="text-xs font-semibold text-white px-3.5 py-2 rounded-lg cursor-pointer"
+              style={{ background: "#B91C1C" }}>Factory reset</button>
+          ) : (
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={factoryReset}
+                className="text-xs font-semibold text-white px-3.5 py-2 rounded-lg cursor-pointer"
+                style={{ background: "#B91C1C" }}>Yes, erase everything</button>
+              <button onClick={() => setConfirming(false)}
+                className="text-xs px-3.5 py-2 rounded-lg cursor-pointer"
+                style={{ border: "1.5px solid var(--dy-bdr)", background: "var(--dy-card)", color: "var(--dy-tx2)" }}>Cancel</button>
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   );
 }

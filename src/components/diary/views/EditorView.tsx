@@ -22,7 +22,7 @@ const PROMPTS = [
 const CAT_LIST = ["Personal", "Work", "Dreams", "Travel", "Health", "Gratitude"];
 
 export function EditorView() {
-  const { setView, addEntry, editEntry, setEditEntry } = useDiary();
+  const { setView, addEntry, editEntry, setEditEntry, draft, setDraft, clearDrafts } = useDiary();
   const editorRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<any>(null);
   const sttBaseRef = useRef<string>("");
@@ -40,10 +40,14 @@ export function EditorView() {
   const [feedback, setFeedback] = useState<string>("");
 
   useEffect(() => {
-    if (editEntry && editorRef.current) {
-      editorRef.current.innerHTML = `<p>${editEntry.body}</p>`;
-      updateWc();
+    if (!editorRef.current) return;
+    if (editEntry) {
+      const sketch = editEntry.sketch ? `<p><img src="${editEntry.sketch}" alt="Handwritten sketch" style="max-width:100%;border-radius:8px;border:1.5px solid var(--dy-bdr)" /></p>` : "";
+      editorRef.current.innerHTML = sketch + `<p>${editEntry.body}</p>`;
+    } else if (draft) {
+      editorRef.current.innerHTML = draft;
     }
+    updateWc();
     return () => setEditEntry(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -54,6 +58,8 @@ export function EditorView() {
   }, []);
 
   function updateWc() {
+    const html = editorRef.current?.innerHTML ?? "";
+    if (!editEntry) setDraft(html);
     const text = editorRef.current?.innerText.trim() ?? "";
     const words = text ? text.split(/\s+/).length : 0;
     setWc({ words, chars: text.length });
@@ -132,16 +138,19 @@ export function EditorView() {
     const mood = MOODS[moodIdx];
     const e: Entry = {
       id: String(Date.now()),
+      date: now.toISOString().slice(0, 10),
       day: String(now.getDate()).padStart(2, "0"),
       mon: now.toLocaleString("en", { month: "short" }),
       title: t,
       preview: body.slice(0, 160),
       body,
+      sketch: editEntry?.sketch,
       mood: mood.label, moodBg: mood.bg, moodColor: mood.color, moodBdr: mood.bdr,
       cats: [...cats, ...extraCats],
       catBg: "#EAF3DE", catColor: "#173404",
     };
     addEntry(e);
+    if (!editEntry) clearDrafts();
     setFeedback(`Entry "${t}" saved securely! ✨`);
     setTimeout(() => setView("entries"), 900);
   }
