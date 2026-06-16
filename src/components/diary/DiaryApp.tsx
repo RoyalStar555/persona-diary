@@ -12,9 +12,12 @@ import { SecurityView } from "./views/SecurityView";
 import { SettingsView } from "./views/SettingsView";
 import { NotificationsView } from "./views/NotificationsView";
 import { ExportView } from "./views/ExportView";
+import { AuthView } from "./views/AuthView";
 
 function Shell() {
-  const { view, locked } = useDiary();
+  const { view, locked, user } = useDiary();
+
+  if (!user) return <AuthView />;
 
   if (locked) {
     return (

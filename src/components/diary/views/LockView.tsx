@@ -2,25 +2,30 @@ import { useEffect, useState } from "react";
 import { Lock, Fingerprint, Delete } from "lucide-react";
 import { useDiary } from "../DiaryContext";
 
-const PIN = "1234";
-
 export function LockView() {
-  const { unlock } = useDiary();
+  const { unlock, verifyPin, biometricUnlock, security, user } = useDiary();
   const [buf, setBuf] = useState("");
   const [err, setErr] = useState("");
+  const [checking, setChecking] = useState(false);
 
-  function press(k: string) {
+  async function press(k: string) {
     setErr("");
     if (k === "del") { setBuf((b) => b.slice(0, -1)); return; }
-    if (k === "bio") { unlock(); return; }
+    if (k === "bio") {
+      const r = await biometricUnlock();
+      if (r.ok) unlock();
+      else setErr(r.error ?? "Biometric failed.");
+      return;
+    }
     if (buf.length >= 4) return;
     const next = buf + k;
     setBuf(next);
     if (next.length === 4) {
-      setTimeout(() => {
-        if (next === PIN) { unlock(); setBuf(""); }
-        else { setErr("Incorrect PIN. Try again."); setBuf(""); }
-      }, 220);
+      setChecking(true);
+      const ok = await verifyPin(next);
+      setChecking(false);
+      if (ok) { unlock(); setBuf(""); }
+      else { setErr("Incorrect PIN. Try again."); setBuf(""); }
     }
   }
 
@@ -42,7 +47,9 @@ export function LockView() {
             style={{ background: "var(--dy-ap)", color: "var(--dy-a)" }}>
             <Lock size={28} />
           </div>
-          <div className="text-[22px] font-bold mb-1 dy-font-serif" style={{ color: "var(--dy-tx)" }}>Welcome back</div>
+          <div className="text-[22px] font-bold mb-1 dy-font-serif" style={{ color: "var(--dy-tx)" }}>
+            Welcome back{user ? `, ${user.username}` : ""}
+          </div>
           <div className="text-[13px] mb-5" style={{ color: "var(--dy-tx3)" }}>Enter your PIN to unlock your diary</div>
 
           <div className="flex gap-3 justify-center mb-5">
@@ -64,13 +71,16 @@ export function LockView() {
             <Key onClick={() => press("del")} small><Delete size={18} /></Key>
           </div>
 
-          <div className="text-xs font-medium min-h-[16px]" style={{ color: "var(--dy-red)" }}>{err}</div>
+          <div className="text-xs font-medium min-h-[16px]" style={{ color: "#B91C1C" }}>
+            {checking ? "Checking…" : err}
+          </div>
 
-          <button onClick={() => press("bio")} className="flex items-center justify-center gap-1.5 text-xs w-full p-2 mt-1.5 cursor-pointer transition-colors"
-            style={{ color: "var(--dy-tx3)", background: "none", border: "none" }}>
-            <Fingerprint size={16} /> Use fingerprint instead
-          </button>
-          <p className="text-[10px] mt-2.5" style={{ color: "var(--dy-tx3)" }}>Demo PIN: <strong>1234</strong></p>
+          {security.credentialId && (
+            <button onClick={() => press("bio")} className="flex items-center justify-center gap-1.5 text-xs w-full p-2 mt-1.5 cursor-pointer transition-colors"
+              style={{ color: "var(--dy-tx3)", background: "none", border: "none" }}>
+              <Fingerprint size={16} /> Use fingerprint instead
+            </button>
+          )}
         </div>
       </div>
     </div>

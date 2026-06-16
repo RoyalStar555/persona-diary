@@ -1,11 +1,11 @@
-import { Home, Pencil, Notebook, Pen, Calendar, ChartLine, Briefcase, Heart, Moon, Map, ShieldCheck, Settings } from "lucide-react";
+import { Home, Pencil, Notebook, Pen, Calendar, ChartLine, Briefcase, Heart, Moon, Map, ShieldCheck, Settings, LogOut } from "lucide-react";
 import { useDiary } from "./DiaryContext";
 import type { ViewId } from "./types";
 
 const navItems: { id: ViewId; label: string; icon: React.ElementType; badge?: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: Home },
   { id: "editor", label: "New entry", icon: Pencil },
-  { id: "entries", label: "All entries", icon: Notebook, badge: "24" },
+  { id: "entries", label: "All entries", icon: Notebook },
   { id: "handwriting", label: "Stylus / draw", icon: Pen },
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "analytics", label: "Analytics", icon: ChartLine },
@@ -19,7 +19,12 @@ const cats = [
 ];
 
 export function Sidebar() {
-  const { view, setView } = useDiary();
+  const { view, setView, entries, categoryFilter, setCategoryFilter, logout, user } = useDiary();
+
+  function pickCategory(name: string) {
+    setCategoryFilter(categoryFilter === name ? "" : name);
+    setView("entries");
+  }
 
   return (
     <nav
@@ -32,15 +37,38 @@ export function Sidebar() {
     >
       <Section label="Navigate" />
       {navItems.map((it) => (
-        <NavBtn key={it.id} active={view === it.id} onClick={() => setView(it.id)} icon={it.icon} label={it.label} badge={it.badge} />
+        <NavBtn
+          key={it.id}
+          active={view === it.id && !categoryFilter}
+          onClick={() => { setCategoryFilter(""); setView(it.id); }}
+          icon={it.icon}
+          label={it.label}
+          badge={it.id === "entries" ? String(entries.length) : it.badge}
+        />
       ))}
       <Section label="Categories" />
       {cats.map((c) => (
-        <NavBtn key={c.name} icon={c.icon} label={c.name} onClick={() => setView("entries")} dot={c.color} />
+        <NavBtn
+          key={c.name}
+          icon={c.icon}
+          label={c.name}
+          active={categoryFilter === c.name}
+          onClick={() => pickCategory(c.name)}
+          dot={c.color}
+        />
       ))}
       <Section label="Tools" />
       <NavBtn active={view === "security"} onClick={() => setView("security")} icon={ShieldCheck} label="Security" />
       <NavBtn active={view === "settings"} onClick={() => setView("settings")} icon={Settings} label="Customise" />
+
+      <div className="mt-auto pt-3 border-t" style={{ borderColor: "var(--dy-bdr)" }}>
+        {user && (
+          <div className="px-2.5 pb-2 text-[11px]" style={{ color: "var(--dy-tx3)" }}>
+            Signed in as <strong style={{ color: "var(--dy-tx2)" }}>{user.username}</strong>
+          </div>
+        )}
+        <NavBtn onClick={logout} icon={LogOut} label="Log out" />
+      </div>
     </nav>
   );
 }

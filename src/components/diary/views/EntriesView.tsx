@@ -4,19 +4,21 @@ import { useDiary } from "../DiaryContext";
 import { EntryItem } from "../primitives";
 
 export function EntriesView() {
-  const { entries, searchQuery, setView, setEditEntry } = useDiary();
+  const { entries, searchQuery, categoryFilter, setCategoryFilter, setView, setEditEntry } = useDiary();
   const [moodFilter, setMoodFilter] = useState("");
   const [sort, setSort] = useState("Newest first");
 
   const filtered = useMemo(() => {
     let list = entries.filter((e) => {
       const q = searchQuery.toLowerCase();
-      return !q || e.title.toLowerCase().includes(q) || e.preview.toLowerCase().includes(q) || e.mood.toLowerCase().includes(q);
+      const matchesQ = !q || e.title.toLowerCase().includes(q) || e.preview.toLowerCase().includes(q) || e.mood.toLowerCase().includes(q) || e.cats.some((c) => c.toLowerCase().includes(q));
+      const matchesCat = !categoryFilter || e.cats.includes(categoryFilter);
+      return matchesQ && matchesCat;
     });
     if (moodFilter) list = list.filter((e) => e.mood === moodFilter);
     if (sort === "Oldest first") list = [...list].reverse();
     return list;
-  }, [entries, searchQuery, moodFilter, sort]);
+  }, [entries, searchQuery, categoryFilter, moodFilter, sort]);
 
   return (
     <div className="p-5">
@@ -41,6 +43,16 @@ export function EntriesView() {
           </button>
         </div>
       </div>
+
+      {categoryFilter && (
+        <div className="mb-3 flex items-center gap-2 text-xs">
+          <span style={{ color: "var(--dy-tx3)" }}>Filtered by category:</span>
+          <span className="px-2.5 py-1 rounded-full font-semibold text-white" style={{ background: "var(--dy-a)" }}>
+            {categoryFilter}
+          </span>
+          <button onClick={() => setCategoryFilter("")} className="underline cursor-pointer" style={{ color: "var(--dy-tx3)" }}>clear</button>
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <p className="py-5" style={{ color: "var(--dy-tx3)" }}>No entries found.</p>
