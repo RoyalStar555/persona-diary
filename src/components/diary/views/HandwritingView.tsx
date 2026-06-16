@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Pen, Eraser, Trash, Download, Save, Info } from "lucide-react";
 import { PageTitle } from "../primitives";
+import { useDiary } from "../DiaryContext";
+import { MOODS, type Entry } from "../types";
 
 const COLORS = ["#2C1A0E","#C8820A","#185FA5","#3B6D11","#A32D2D","#534AB7","#D4537E"];
 
@@ -10,6 +12,8 @@ export function HandwritingView() {
   const [color, setColor] = useState("#2C1A0E");
   const [size, setSize] = useState(3);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
+  const [feedback, setFeedback] = useState("");
+  const { addEntry, setView } = useDiary();
 
   useEffect(() => {
     const c = canvasRef.current;
@@ -61,6 +65,16 @@ export function HandwritingView() {
     };
   }, [color, size, tool]);
 
+  function isBlank() {
+    const c = canvasRef.current;
+    if (!c) return true;
+    const ctx = c.getContext("2d");
+    if (!ctx) return true;
+    const data = ctx.getImageData(0, 0, c.width, c.height).data;
+    for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) return false;
+    return true;
+  }
+
   function clear() {
     const c = canvasRef.current; const ctx = c?.getContext("2d");
     if (c && ctx) ctx.clearRect(0, 0, c.width, c.height);
@@ -71,6 +85,31 @@ export function HandwritingView() {
     a.download = "diary-sketch.png";
     a.href = c.toDataURL();
     a.click();
+  }
+
+  function saveAsEntry() {
+    const c = canvasRef.current; if (!c) return;
+    if (isBlank()) { setFeedback("Canvas is empty — draw something first."); return; }
+    const dataUrl = c.toDataURL("image/png");
+    const now = new Date();
+    const mood = MOODS[0];
+    const iso = now.toISOString().slice(0, 10);
+    const e: Entry = {
+      id: String(Date.now()),
+      date: iso,
+      day: String(now.getDate()).padStart(2, "0"),
+      mon: now.toLocaleString("en", { month: "short" }),
+      title: "Handwritten note — " + now.toLocaleDateString(),
+      preview: "A handwritten / sketched entry. Open to view the canvas.",
+      body: "A handwritten / sketched entry captured on the canvas.",
+      sketch: dataUrl,
+      mood: mood.label, moodBg: mood.bg, moodColor: mood.color, moodBdr: mood.bdr,
+      cats: ["Personal"],
+      catBg: "#EAF3DE", catColor: "#173404",
+    };
+    addEntry(e);
+    setFeedback("Sketch saved as a new diary entry ✨");
+    setTimeout(() => setView("entries"), 700);
   }
 
   return (
@@ -92,10 +131,13 @@ export function HandwritingView() {
         <ToolBtn onClick={clear}><Trash size={13} /> Clear</ToolBtn>
         <ToolBtn onClick={download}><Download size={13} /> Download</ToolBtn>
         <button className="flex items-center gap-1.5 text-xs font-semibold text-white px-3.5 py-1.5 rounded-lg cursor-pointer"
-          style={{ background: "var(--dy-a)" }} onClick={() => alert("Handwriting page saved as a new diary entry! ✨")}>
+          style={{ background: "var(--dy-a)" }} onClick={saveAsEntry}>
           <Save size={13} /> Save as entry
         </button>
       </div>
+      {feedback && (
+        <div className="text-xs mb-2" style={{ color: "var(--dy-a)" }}>{feedback}</div>
+      )}
       <canvas
         ref={canvasRef}
         width={700}
