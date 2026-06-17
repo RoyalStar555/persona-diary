@@ -345,9 +345,18 @@ export function EditorView() {
         aria-multiline
         suppressContentEditableWarning
         onInput={updateWc}
+        onKeyUp={saveSelection}
+        onMouseUp={saveSelection}
         data-placeholder="Pour your heart out… this is your safe space."
-        className={`dy-editor ${fontCls} w-full min-h-[300px] px-5 py-4 rounded-xl outline-none transition-all leading-[1.8]`}
+        className="dy-editor w-full min-h-[300px] px-5 py-4 rounded-xl outline-none transition-all leading-[1.8]"
         style={{
+          border: "1.5px solid var(--dy-bdr)",
+          background: "var(--dy-card)",
+          color: "var(--dy-tx)",
+          fontSize,
+          fontFamily: activeFontCss,
+        }}
+      />
           border: "1.5px solid var(--dy-bdr)",
           background: "var(--dy-card)",
           color: "var(--dy-tx)",
