@@ -357,12 +357,6 @@ export function EditorView() {
           fontFamily: activeFontCss,
         }}
       />
-          border: "1.5px solid var(--dy-bdr)",
-          background: "var(--dy-card)",
-          color: "var(--dy-tx)",
-          fontSize,
-        }}
-      />
 
       <div className="flex items-center justify-between mt-2.5">
         <div className="text-xs" style={{ color: "var(--dy-tx3)" }}>{wc.words} words · {wc.chars} characters</div>
