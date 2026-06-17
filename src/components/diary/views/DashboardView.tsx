@@ -13,9 +13,9 @@ export function DashboardView() {
 
   return (
     <div className="p-5">
-      <div className="text-xl font-bold mb-1" style={{ color: "var(--dy-tx)" }}>
+      <h1 className="text-xl font-bold mb-1" style={{ color: "var(--dy-tx)" }}>
         Good morning ✨ How are you feeling?
-      </div>
+      </h1>
       <div className="text-[13px] mb-4" style={{ color: "var(--dy-tx3)" }}>
         {dateStr} — Let today's thoughts flow freely.
       </div>

@@ -88,6 +88,7 @@ function IconBtn({ children, onClick, title, badge }: { children: React.ReactNod
     <button
       onClick={onClick}
       title={title}
+      aria-label={title}
       className="relative w-[34px] h-[34px] rounded-lg flex items-center justify-center cursor-pointer transition-all"
       style={{
         border: "1.5px solid var(--dy-bdr)",

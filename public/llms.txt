@@ -1,0 +1,7 @@
+# MyDiary
+
+> A warm, secure personal digital diary for journaling, mood tracking, handwriting, and analytics — built with privacy-first local storage and biometric unlock.
+
+## Pages
+
+- [Home](/): MyDiary app — sign in, write entries, track moods, and review your journal.
