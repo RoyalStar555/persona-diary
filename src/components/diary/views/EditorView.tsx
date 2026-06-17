@@ -4,9 +4,19 @@ import {
   Underline, Strikethrough, List, ListOrdered, AlignLeft, AlignCenter,
   AlignRight, Quote, Smile, Undo2, Redo2, Tag,
 } from "lucide-react";
+import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { useDiary } from "../DiaryContext";
 import { MOODS, type Entry } from "../types";
 import { MoodChip } from "../primitives";
+
+const FONT_FAMILIES: { id: string; label: string; css: string }[] = [
+  { id: "inter", label: "Inter", css: "'Inter', sans-serif" },
+  { id: "playfair", label: "Playfair Display", css: "'Playfair Display', serif" },
+  { id: "merriweather", label: "Merriweather", css: "'Merriweather', serif" },
+  { id: "caveat", label: "Caveat (handwriting)", css: "'Caveat', cursive" },
+  { id: "comic", label: "Comic Neue", css: "'Comic Neue', cursive" },
+  { id: "mono", label: "Space Mono", css: "'Space Mono', monospace" },
+];
 
 const PROMPTS = [
   "What made you smile today?",
@@ -22,22 +32,24 @@ const PROMPTS = [
 const CAT_LIST = ["Personal", "Work", "Dreams", "Travel", "Health", "Gratitude"];
 
 export function EditorView() {
-  const { setView, addEntry, editEntry, setEditEntry, draft, setDraft, clearDrafts } = useDiary();
+  const { setView, addEntry, editEntry, setEditEntry, draft, setDraft, clearDrafts, dark } = useDiary();
   const editorRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<any>(null);
   const sttBaseRef = useRef<string>("");
+  const savedRangeRef = useRef<Range | null>(null);
 
   const [title, setTitle] = useState(editEntry?.title ?? "");
   const [moodIdx, setMoodIdx] = useState(0);
   const [cats, setCats] = useState<string[]>(editEntry?.cats ?? ["Personal"]);
   const [extraCats, setExtraCats] = useState<string[]>([]);
-  const [font, setFont] = useState<"sans" | "serif" | "mono">("sans");
+  const [fontFamily, setFontFamily] = useState<string>("inter");
   const [fontSize, setFontSize] = useState("15px");
   const [wc, setWc] = useState({ words: 0, chars: 0 });
   const [now, setNow] = useState(new Date());
   const [voicing, setVoicing] = useState(false);
   const [dictating, setDictating] = useState(false);
   const [feedback, setFeedback] = useState<string>("");
+  const [showEmoji, setShowEmoji] = useState(false);
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -83,10 +95,66 @@ export function EditorView() {
     document.execCommand("insertHTML", false, '<blockquote style="border-left:3px solid var(--dy-al);padding-left:12px;color:var(--dy-tx2);margin:8px 0;font-style:italic">Your quote here</blockquote>');
   }
 
-  function insertEmoji() {
-    const e = ["✨","🌟","💛","🍂","☕","📖","🌙","🌸","🦋","🌿","🎉","💫","🌈","🕯","📝","🍵","🌻","💌"];
+  function saveSelection() {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && editorRef.current?.contains(sel.anchorNode)) {
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  }
+
+  function restoreSelection() {
+    const r = savedRangeRef.current;
     editorRef.current?.focus();
-    document.execCommand("insertText", false, e[Math.floor(Math.random() * e.length)]);
+    if (r) {
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(r);
+    }
+  }
+
+  function insertAtCursor(text: string) {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) {
+      editorRef.current?.append(document.createTextNode(text));
+    } else {
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      const node = document.createTextNode(text);
+      range.insertNode(node);
+      range.setStartAfter(node);
+      range.setEndAfter(node);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      savedRangeRef.current = range.cloneRange();
+    }
+    updateWc();
+  }
+
+  function applyFontFamily(id: string) {
+    setFontFamily(id);
+    const fam = FONT_FAMILIES.find((f) => f.id === id);
+    if (!fam) return;
+    restoreSelection();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      // wrap selection in a span with inline font-family so it persists
+      const range = sel.getRangeAt(0);
+      const span = document.createElement("span");
+      span.style.fontFamily = fam.css;
+      try {
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+        const r = document.createRange();
+        r.selectNodeContents(span);
+        sel.addRange(r);
+      } catch {
+        document.execCommand("fontName", false, fam.css);
+      }
+    }
+    if (editorRef.current) editorRef.current.style.fontFamily = fam.css;
+    updateWc();
   }
 
   function toggleVoice() {
@@ -176,7 +244,7 @@ export function EditorView() {
     if (t?.trim()) setExtraCats([...extraCats, t.trim()]);
   }
 
-  const fontCls = `dy-font-${font}`;
+  const activeFontCss = FONT_FAMILIES.find((f) => f.id === fontFamily)?.css ?? "'Inter', sans-serif";
 
   return (
     <div className="p-5">
@@ -231,8 +299,8 @@ export function EditorView() {
         style={{ borderBottom: "2px solid var(--dy-bdr)", color: "var(--dy-tx)" }}
       />
 
-      <div className="flex gap-1 px-2.5 py-2 dy-surf-bg rounded-lg mb-3 flex-wrap items-center" style={{ border: "1.5px solid var(--dy-bdr)" }}>
-        <Select value={font} onChange={(v) => setFont(v as any)} options={[["sans","Sans-serif"],["serif","Serif"],["mono","Mono"]]} />
+      <div className="flex gap-1 px-2.5 py-2 dy-surf-bg rounded-lg mb-3 flex-wrap items-center relative" style={{ border: "1.5px solid var(--dy-bdr)" }}>
+        <FontSelect value={fontFamily} onChange={applyFontFamily} />
         <Select value={fontSize} onChange={setFontSize} options={[["13px","13px"],["15px","15px"],["17px","17px"],["20px","20px"],["24px","24px"]]} />
         <Sep />
         <TbBtn label="Bold" onClick={() => fmt("bold")}><Bold size={13} /></TbBtn>
@@ -248,9 +316,20 @@ export function EditorView() {
         <TbBtn label="Align right" onClick={() => fmt("justifyRight")}><AlignRight size={13} /></TbBtn>
         <Sep />
         <TbBtn label="Insert quote" onClick={insertQuote}><Quote size={13} /></TbBtn>
-        <TbBtn label="Insert emoji" onClick={insertEmoji}><Smile size={13} /></TbBtn>
+        <TbBtn label="Insert emoji" onClick={() => { saveSelection(); setShowEmoji((s) => !s); }}><Smile size={13} /></TbBtn>
         <TbBtn label="Undo" onClick={() => fmt("undo")}><Undo2 size={13} /></TbBtn>
         <TbBtn label="Redo" onClick={() => fmt("redo")}><Redo2 size={13} /></TbBtn>
+        {showEmoji && (
+          <div className="absolute z-50 top-full right-2 mt-2 dy-card" style={{ borderRadius: 12, overflow: "hidden", border: "1.5px solid var(--dy-bdr)" }}>
+            <EmojiPicker
+              theme={dark ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+              onEmojiClick={(d) => { insertAtCursor(d.emoji); setShowEmoji(false); }}
+              width={320}
+              height={380}
+              previewConfig={{ showPreview: false }}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex gap-1.5 flex-wrap mb-3">
@@ -266,13 +345,16 @@ export function EditorView() {
         aria-multiline
         suppressContentEditableWarning
         onInput={updateWc}
+        onKeyUp={saveSelection}
+        onMouseUp={saveSelection}
         data-placeholder="Pour your heart out… this is your safe space."
-        className={`dy-editor ${fontCls} w-full min-h-[300px] px-5 py-4 rounded-xl outline-none transition-all leading-[1.8]`}
+        className="dy-editor w-full min-h-[300px] px-5 py-4 rounded-xl outline-none transition-all leading-[1.8]"
         style={{
           border: "1.5px solid var(--dy-bdr)",
           background: "var(--dy-card)",
           color: "var(--dy-tx)",
           fontSize,
+          fontFamily: activeFontCss,
         }}
       />
 
@@ -345,6 +427,23 @@ function Select({ value, onChange, options }: { value: string; onChange: (v: str
     <select value={value} onChange={(e) => onChange(e.target.value)} className="text-xs px-2 py-1 rounded outline-none cursor-pointer"
       style={{ border: "1.5px solid var(--dy-bdr)", background: "var(--dy-card)", color: "var(--dy-tx2)" }}>
       {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+    </select>
+  );
+}
+function FontSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const current = FONT_FAMILIES.find((f) => f.id === value) ?? FONT_FAMILIES[0];
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="text-xs px-2 py-1 rounded outline-none cursor-pointer min-w-[130px]"
+      style={{ border: "1.5px solid var(--dy-bdr)", background: "var(--dy-card)", color: "var(--dy-tx2)", fontFamily: current.css }}
+      title="Font family"
+      aria-label="Font family"
+    >
+      {FONT_FAMILIES.map((f) => (
+        <option key={f.id} value={f.id} style={{ fontFamily: f.css }}>{f.label}</option>
+      ))}
     </select>
   );
 }

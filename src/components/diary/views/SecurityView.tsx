@@ -44,7 +44,18 @@ export function SecurityView() {
           </button>
           <Toggle label="Auto-lock after 5 min idle" value={security.autoLock} onChange={(v) => setSecurity({ autoLock: v })} />
         </Sec>
-        <Sec icon={<Fingerprint size={14} />} title="Biometrics (WebAuthn)" desc="Fingerprint or face unlock via your device.">
+        <Sec icon={<Fingerprint size={14} />} title="Biometrics (WebAuthn)" desc="Fingerprint, Face ID, or Windows Hello via your device.">
+          <button
+            onClick={() => toggleBio("fingerprint")}
+            className="w-full justify-center flex items-center gap-1.5 text-xs font-semibold py-2 rounded-lg cursor-pointer mb-1.5"
+            style={{
+              background: security.credentialId ? "var(--dy-card)" : "var(--dy-a)",
+              color: security.credentialId ? "var(--dy-tx2)" : "white",
+              border: `1.5px solid ${security.credentialId ? "var(--dy-bdr)" : "var(--dy-a)"}`,
+            }}
+          >
+            <Fingerprint size={13} /> {security.credentialId ? "Remove device biometrics" : "Register device biometrics"}
+          </button>
           <Toggle label="Fingerprint unlock" value={security.fingerprint} onChange={() => toggleBio("fingerprint")} />
           <Toggle label="Face ID" value={security.faceId} onChange={() => toggleBio("faceId")} />
         </Sec>
