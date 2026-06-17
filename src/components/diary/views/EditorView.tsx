@@ -244,7 +244,7 @@ export function EditorView() {
     if (t?.trim()) setExtraCats([...extraCats, t.trim()]);
   }
 
-  const fontCls = `dy-font-${font}`;
+  const activeFontCss = FONT_FAMILIES.find((f) => f.id === fontFamily)?.css ?? "'Inter', sans-serif";
 
   return (
     <div className="p-5">
