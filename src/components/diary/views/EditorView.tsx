@@ -430,6 +430,23 @@ function Select({ value, onChange, options }: { value: string; onChange: (v: str
     </select>
   );
 }
+function FontSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const current = FONT_FAMILIES.find((f) => f.id === value) ?? FONT_FAMILIES[0];
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="text-xs px-2 py-1 rounded outline-none cursor-pointer min-w-[130px]"
+      style={{ border: "1.5px solid var(--dy-bdr)", background: "var(--dy-card)", color: "var(--dy-tx2)", fontFamily: current.css }}
+      title="Font family"
+      aria-label="Font family"
+    >
+      {FONT_FAMILIES.map((f) => (
+        <option key={f.id} value={f.id} style={{ fontFamily: f.css }}>{f.label}</option>
+      ))}
+    </select>
+  );
+}
 function Ctab({ children, active, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
   return (
     <span onClick={onClick} className="px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all"
