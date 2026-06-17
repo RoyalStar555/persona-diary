@@ -20,7 +20,7 @@ export function CardTitle({ children, icon }: { children: ReactNode; icon?: Reac
 export function PageTitle({ title, sub }: { title: string; sub?: string }) {
   return (
     <>
-      <div className="text-xl font-bold mb-1" style={{ color: "var(--dy-tx)" }}>{title}</div>
+      <h1 className="text-xl font-bold mb-1" style={{ color: "var(--dy-tx)" }}>{title}</h1>
       {sub && <div className="text-[13px] mb-4" style={{ color: "var(--dy-tx3)" }}>{sub}</div>}
     </>
   );

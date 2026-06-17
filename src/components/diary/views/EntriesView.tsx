@@ -24,7 +24,7 @@ export function EntriesView() {
     <div className="p-5">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
-          <div className="text-xl font-bold" style={{ color: "var(--dy-tx)" }}>All entries</div>
+          <h1 className="text-xl font-bold" style={{ color: "var(--dy-tx)" }}>All entries</h1>
           <div className="text-[13px]" style={{ color: "var(--dy-tx3)" }}>Your complete journal</div>
         </div>
         <div className="flex gap-1.5 flex-wrap">

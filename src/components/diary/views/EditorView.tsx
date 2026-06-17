@@ -205,7 +205,7 @@ export function EditorView() {
 
       <div className="flex items-start justify-between gap-2.5 mb-3.5 flex-wrap">
         <div>
-          <div className="text-xl font-bold" style={{ color: "var(--dy-tx)" }}>{editEntry ? "Edit entry" : "New entry"}</div>
+          <h1 className="text-xl font-bold" style={{ color: "var(--dy-tx)" }}>{editEntry ? "Edit entry" : "New entry"}</h1>
           <div className="text-xs flex items-center gap-2.5 mt-1" style={{ color: "var(--dy-tx3)" }}>
             <Calendar size={13} /> {now.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             <Clock size={13} /> {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -235,22 +235,22 @@ export function EditorView() {
         <Select value={font} onChange={(v) => setFont(v as any)} options={[["sans","Sans-serif"],["serif","Serif"],["mono","Mono"]]} />
         <Select value={fontSize} onChange={setFontSize} options={[["13px","13px"],["15px","15px"],["17px","17px"],["20px","20px"],["24px","24px"]]} />
         <Sep />
-        <TbBtn onClick={() => fmt("bold")}><Bold size={13} /></TbBtn>
-        <TbBtn onClick={() => fmt("italic")}><Italic size={13} /></TbBtn>
-        <TbBtn onClick={() => fmt("underline")}><Underline size={13} /></TbBtn>
-        <TbBtn onClick={() => fmt("strikeThrough")}><Strikethrough size={13} /></TbBtn>
+        <TbBtn label="Bold" onClick={() => fmt("bold")}><Bold size={13} /></TbBtn>
+        <TbBtn label="Italic" onClick={() => fmt("italic")}><Italic size={13} /></TbBtn>
+        <TbBtn label="Underline" onClick={() => fmt("underline")}><Underline size={13} /></TbBtn>
+        <TbBtn label="Strikethrough" onClick={() => fmt("strikeThrough")}><Strikethrough size={13} /></TbBtn>
         <Sep />
-        <TbBtn onClick={() => fmt("insertUnorderedList")}><List size={13} /></TbBtn>
-        <TbBtn onClick={() => fmt("insertOrderedList")}><ListOrdered size={13} /></TbBtn>
+        <TbBtn label="Bulleted list" onClick={() => fmt("insertUnorderedList")}><List size={13} /></TbBtn>
+        <TbBtn label="Numbered list" onClick={() => fmt("insertOrderedList")}><ListOrdered size={13} /></TbBtn>
         <Sep />
-        <TbBtn onClick={() => fmt("justifyLeft")}><AlignLeft size={13} /></TbBtn>
-        <TbBtn onClick={() => fmt("justifyCenter")}><AlignCenter size={13} /></TbBtn>
-        <TbBtn onClick={() => fmt("justifyRight")}><AlignRight size={13} /></TbBtn>
+        <TbBtn label="Align left" onClick={() => fmt("justifyLeft")}><AlignLeft size={13} /></TbBtn>
+        <TbBtn label="Align center" onClick={() => fmt("justifyCenter")}><AlignCenter size={13} /></TbBtn>
+        <TbBtn label="Align right" onClick={() => fmt("justifyRight")}><AlignRight size={13} /></TbBtn>
         <Sep />
-        <TbBtn onClick={insertQuote}><Quote size={13} /></TbBtn>
-        <TbBtn onClick={insertEmoji}><Smile size={13} /></TbBtn>
-        <TbBtn onClick={() => fmt("undo")}><Undo2 size={13} /></TbBtn>
-        <TbBtn onClick={() => fmt("redo")}><Redo2 size={13} /></TbBtn>
+        <TbBtn label="Insert quote" onClick={insertQuote}><Quote size={13} /></TbBtn>
+        <TbBtn label="Insert emoji" onClick={insertEmoji}><Smile size={13} /></TbBtn>
+        <TbBtn label="Undo" onClick={() => fmt("undo")}><Undo2 size={13} /></TbBtn>
+        <TbBtn label="Redo" onClick={() => fmt("redo")}><Redo2 size={13} /></TbBtn>
       </div>
 
       <div className="flex gap-1.5 flex-wrap mb-3">
@@ -327,9 +327,9 @@ function SBtn({ children, onClick }: { children: React.ReactNode; onClick?: () =
     </button>
   );
 }
-function TbBtn({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+function TbBtn({ children, onClick, label }: { children: React.ReactNode; onClick?: () => void; label?: string }) {
   return (
-    <button onClick={onClick} className="p-1.5 rounded cursor-pointer text-xs flex items-center transition-all"
+    <button onClick={onClick} aria-label={label} title={label} className="p-1.5 rounded cursor-pointer text-xs flex items-center transition-all"
       style={{ color: "var(--dy-tx2)", border: "1.5px solid transparent" }}
       onMouseEnter={(e) => { e.currentTarget.style.background = "var(--dy-ap)"; e.currentTarget.style.color = "var(--dy-a)"; e.currentTarget.style.borderColor = "var(--dy-al)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--dy-tx2)"; e.currentTarget.style.borderColor = "transparent"; }}>
