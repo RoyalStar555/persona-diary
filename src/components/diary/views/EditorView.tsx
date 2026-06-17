@@ -95,10 +95,66 @@ export function EditorView() {
     document.execCommand("insertHTML", false, '<blockquote style="border-left:3px solid var(--dy-al);padding-left:12px;color:var(--dy-tx2);margin:8px 0;font-style:italic">Your quote here</blockquote>');
   }
 
-  function insertEmoji() {
-    const e = ["✨","🌟","💛","🍂","☕","📖","🌙","🌸","🦋","🌿","🎉","💫","🌈","🕯","📝","🍵","🌻","💌"];
+  function saveSelection() {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && editorRef.current?.contains(sel.anchorNode)) {
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  }
+
+  function restoreSelection() {
+    const r = savedRangeRef.current;
     editorRef.current?.focus();
-    document.execCommand("insertText", false, e[Math.floor(Math.random() * e.length)]);
+    if (r) {
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(r);
+    }
+  }
+
+  function insertAtCursor(text: string) {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) {
+      editorRef.current?.append(document.createTextNode(text));
+    } else {
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      const node = document.createTextNode(text);
+      range.insertNode(node);
+      range.setStartAfter(node);
+      range.setEndAfter(node);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      savedRangeRef.current = range.cloneRange();
+    }
+    updateWc();
+  }
+
+  function applyFontFamily(id: string) {
+    setFontFamily(id);
+    const fam = FONT_FAMILIES.find((f) => f.id === id);
+    if (!fam) return;
+    restoreSelection();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      // wrap selection in a span with inline font-family so it persists
+      const range = sel.getRangeAt(0);
+      const span = document.createElement("span");
+      span.style.fontFamily = fam.css;
+      try {
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+        const r = document.createRange();
+        r.selectNodeContents(span);
+        sel.addRange(r);
+      } catch {
+        document.execCommand("fontName", false, fam.css);
+      }
+    }
+    if (editorRef.current) editorRef.current.style.fontFamily = fam.css;
+    updateWc();
   }
 
   function toggleVoice() {
