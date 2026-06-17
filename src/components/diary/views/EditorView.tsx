@@ -299,8 +299,8 @@ export function EditorView() {
         style={{ borderBottom: "2px solid var(--dy-bdr)", color: "var(--dy-tx)" }}
       />
 
-      <div className="flex gap-1 px-2.5 py-2 dy-surf-bg rounded-lg mb-3 flex-wrap items-center" style={{ border: "1.5px solid var(--dy-bdr)" }}>
-        <Select value={font} onChange={(v) => setFont(v as any)} options={[["sans","Sans-serif"],["serif","Serif"],["mono","Mono"]]} />
+      <div className="flex gap-1 px-2.5 py-2 dy-surf-bg rounded-lg mb-3 flex-wrap items-center relative" style={{ border: "1.5px solid var(--dy-bdr)" }}>
+        <FontSelect value={fontFamily} onChange={applyFontFamily} />
         <Select value={fontSize} onChange={setFontSize} options={[["13px","13px"],["15px","15px"],["17px","17px"],["20px","20px"],["24px","24px"]]} />
         <Sep />
         <TbBtn label="Bold" onClick={() => fmt("bold")}><Bold size={13} /></TbBtn>
@@ -316,9 +316,20 @@ export function EditorView() {
         <TbBtn label="Align right" onClick={() => fmt("justifyRight")}><AlignRight size={13} /></TbBtn>
         <Sep />
         <TbBtn label="Insert quote" onClick={insertQuote}><Quote size={13} /></TbBtn>
-        <TbBtn label="Insert emoji" onClick={insertEmoji}><Smile size={13} /></TbBtn>
+        <TbBtn label="Insert emoji" onClick={() => { saveSelection(); setShowEmoji((s) => !s); }}><Smile size={13} /></TbBtn>
         <TbBtn label="Undo" onClick={() => fmt("undo")}><Undo2 size={13} /></TbBtn>
         <TbBtn label="Redo" onClick={() => fmt("redo")}><Redo2 size={13} /></TbBtn>
+        {showEmoji && (
+          <div className="absolute z-50 top-full right-2 mt-2 dy-card" style={{ borderRadius: 12, overflow: "hidden", border: "1.5px solid var(--dy-bdr)" }}>
+            <EmojiPicker
+              theme={dark ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+              onEmojiClick={(d) => { insertAtCursor(d.emoji); setShowEmoji(false); }}
+              width={320}
+              height={380}
+              previewConfig={{ showPreview: false }}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex gap-1.5 flex-wrap mb-3">
