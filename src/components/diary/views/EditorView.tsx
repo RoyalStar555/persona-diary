@@ -32,22 +32,24 @@ const PROMPTS = [
 const CAT_LIST = ["Personal", "Work", "Dreams", "Travel", "Health", "Gratitude"];
 
 export function EditorView() {
-  const { setView, addEntry, editEntry, setEditEntry, draft, setDraft, clearDrafts } = useDiary();
+  const { setView, addEntry, editEntry, setEditEntry, draft, setDraft, clearDrafts, dark } = useDiary();
   const editorRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<any>(null);
   const sttBaseRef = useRef<string>("");
+  const savedRangeRef = useRef<Range | null>(null);
 
   const [title, setTitle] = useState(editEntry?.title ?? "");
   const [moodIdx, setMoodIdx] = useState(0);
   const [cats, setCats] = useState<string[]>(editEntry?.cats ?? ["Personal"]);
   const [extraCats, setExtraCats] = useState<string[]>([]);
-  const [font, setFont] = useState<"sans" | "serif" | "mono">("sans");
+  const [fontFamily, setFontFamily] = useState<string>("inter");
   const [fontSize, setFontSize] = useState("15px");
   const [wc, setWc] = useState({ words: 0, chars: 0 });
   const [now, setNow] = useState(new Date());
   const [voicing, setVoicing] = useState(false);
   const [dictating, setDictating] = useState(false);
   const [feedback, setFeedback] = useState<string>("");
+  const [showEmoji, setShowEmoji] = useState(false);
 
   useEffect(() => {
     if (!editorRef.current) return;
