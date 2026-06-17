@@ -4,9 +4,19 @@ import {
   Underline, Strikethrough, List, ListOrdered, AlignLeft, AlignCenter,
   AlignRight, Quote, Smile, Undo2, Redo2, Tag,
 } from "lucide-react";
+import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { useDiary } from "../DiaryContext";
 import { MOODS, type Entry } from "../types";
 import { MoodChip } from "../primitives";
+
+const FONT_FAMILIES: { id: string; label: string; css: string }[] = [
+  { id: "inter", label: "Inter", css: "'Inter', sans-serif" },
+  { id: "playfair", label: "Playfair Display", css: "'Playfair Display', serif" },
+  { id: "merriweather", label: "Merriweather", css: "'Merriweather', serif" },
+  { id: "caveat", label: "Caveat (handwriting)", css: "'Caveat', cursive" },
+  { id: "comic", label: "Comic Neue", css: "'Comic Neue', cursive" },
+  { id: "mono", label: "Space Mono", css: "'Space Mono', monospace" },
+];
 
 const PROMPTS = [
   "What made you smile today?",
