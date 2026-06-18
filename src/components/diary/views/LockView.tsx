@@ -100,15 +100,21 @@ export function LockView() {
           </div>
 
           <div className="text-xs font-medium min-h-[16px]" style={{ color: "#B91C1C" }}>
-            {checking ? "Checking…" : err}
+            {cooldown > 0 ? `Locked for ${cooldown}s…` : checking ? "Checking…" : err}
           </div>
 
           {security.credentialId && (
-            <button onClick={() => press("bio")} className="flex items-center justify-center gap-1.5 text-xs w-full p-2 mt-1.5 cursor-pointer transition-colors"
+            <button onClick={() => press("bio")} disabled={cooldown > 0} className="flex items-center justify-center gap-1.5 text-xs w-full p-2 mt-1.5 cursor-pointer transition-colors disabled:opacity-50"
               style={{ color: "var(--dy-tx3)", background: "none", border: "none" }}>
               <Fingerprint size={16} /> Use fingerprint instead
             </button>
           )}
+
+          <button onClick={() => { if (confirm("Sign out and return to the login screen?")) logout(); }}
+            className="text-[11px] mt-2 underline cursor-pointer"
+            style={{ color: "var(--dy-tx3)", background: "none", border: "none" }}>
+            Not you? Sign out
+          </button>
         </div>
       </div>
     </div>
