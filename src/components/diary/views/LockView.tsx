@@ -1,19 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Lock, Fingerprint, Delete } from "lucide-react";
 import { useDiary } from "../DiaryContext";
 
 export function LockView() {
-  const { unlock, verifyPin, biometricUnlock, security, user } = useDiary();
+  const { unlock, verifyPin, biometricUnlock, security, user, logout } = useDiary();
   const [buf, setBuf] = useState("");
   const [err, setErr] = useState("");
   const [checking, setChecking] = useState(false);
+  const [fails, setFails] = useState(0);
+  const [cooldown, setCooldown] = useState(0); // seconds remaining
+  const cooldownRef = useRef<number | null>(null);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    cooldownRef.current = window.setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) { if (cooldownRef.current) window.clearInterval(cooldownRef.current); return 0; }
+        return c - 1;
+      });
+    }, 1000);
+    return () => { if (cooldownRef.current) window.clearInterval(cooldownRef.current); };
+  }, [cooldown]);
 
   async function press(k: string) {
+    if (cooldown > 0) return;
     setErr("");
     if (k === "del") { setBuf((b) => b.slice(0, -1)); return; }
     if (k === "bio") {
       const r = await biometricUnlock();
-      if (r.ok) unlock();
+      if (r.ok) { unlock(); setFails(0); }
       else setErr(r.error ?? "Biometric failed.");
       return;
     }
@@ -24,8 +40,20 @@ export function LockView() {
       setChecking(true);
       const ok = await verifyPin(next);
       setChecking(false);
-      if (ok) { unlock(); setBuf(""); }
-      else { setErr("Incorrect PIN. Try again."); setBuf(""); }
+      setBuf("");
+      if (ok) { unlock(); setFails(0); }
+      else {
+        const nf = fails + 1;
+        setFails(nf);
+        if (nf >= 5) {
+          // Escalating cooldown: 30s, 60s, 120s…
+          const wait = Math.min(30 * Math.pow(2, nf - 5), 300);
+          setCooldown(wait);
+          setErr(`Too many attempts. Wait ${wait}s.`);
+        } else {
+          setErr(`Incorrect PIN. ${5 - nf} attempt${5 - nf === 1 ? "" : "s"} left.`);
+        }
+      }
     }
   }
 
@@ -37,7 +65,7 @@ export function LockView() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buf]);
+  }, [buf, cooldown, fails]);
 
   return (
     <div className="p-5">
