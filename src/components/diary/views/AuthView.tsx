@@ -33,7 +33,7 @@ export function AuthView() {
 
         <div className="flex p-1 rounded-xl mb-4" style={{ background: "var(--dy-ap)" }}>
           {(["signup", "login"] as const).map((m) => (
-            <button key={m} type="button" onClick={() => { setMode(m); setErr(""); }}
+            <button key={m} type="button" onClick={() => { setMode(m); setErr(""); setPassword(""); setPin(""); }}
               className="flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5"
               style={{
                 background: mode === m ? "var(--dy-card)" : "transparent",
@@ -44,11 +44,13 @@ export function AuthView() {
           ))}
         </div>
 
-        <form onSubmit={submit} className="flex flex-col gap-2.5">
-          <Field label="Username" value={username} onChange={setUsername} placeholder="e.g. moonwriter" />
-          <Field label="Password" value={password} onChange={setPassword} type="password" placeholder="At least 4 characters" />
+        <form onSubmit={submit} className="flex flex-col gap-2.5" autoComplete="off">
+          <Field label="Username" value={username} onChange={setUsername} placeholder="e.g. moonwriter" autoComplete="username" />
+          <Field label="Password" value={password} onChange={setPassword} type="password"
+            placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+            autoComplete={mode === "signup" ? "new-password" : "current-password"} />
           {mode === "signup" && (
-            <Field label="4-digit PIN" value={pin} onChange={(v) => setPin(v.replace(/\D/g, "").slice(0, 4))} placeholder="••••" />
+            <Field label="4-digit PIN (lock-screen)" value={pin} onChange={(v) => setPin(v.replace(/\D/g, "").slice(0, 4))} placeholder="••••" type="password" autoComplete="off" />
           )}
           {err && <div className="text-xs" style={{ color: "var(--dy-red, #B91C1C)" }}>{err}</div>}
           <button type="submit" disabled={busy}
@@ -66,13 +68,13 @@ export function AuthView() {
   );
 }
 
-function Field({ label, value, onChange, type = "text", placeholder }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
+function Field({ label, value, onChange, type = "text", placeholder, autoComplete }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; autoComplete?: string;
 }) {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-[11px] font-semibold" style={{ color: "var(--dy-tx2)" }}>{label}</span>
-      <input value={value} onChange={(e) => onChange(e.target.value)} type={type} placeholder={placeholder}
+      <input value={value} onChange={(e) => onChange(e.target.value)} type={type} placeholder={placeholder} autoComplete={autoComplete}
         className="px-3 py-2 rounded-lg text-sm outline-none"
         style={{ border: "1.5px solid var(--dy-bdr)", background: "var(--dy-card)", color: "var(--dy-tx)" }} />
     </label>

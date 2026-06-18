@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Book, Search, Flame, Bell, Download, Lock, Sun, Moon } from "lucide-react";
+import { Book, Search, Flame, Bell, Download, Lock, Sun, Moon, LogOut } from "lucide-react";
 import { useDiary } from "./DiaryContext";
 
 export function Topbar() {
-  const { setView, streak, dark, toggleDark, searchQuery, setSearchQuery } = useDiary();
+  const { setView, streak, dark, toggleDark, searchQuery, setSearchQuery, lock, logout, locked, user } = useDiary();
   const [notifDot] = useState(true);
 
   return (
@@ -12,9 +12,10 @@ export function Topbar() {
       style={{ borderColor: "var(--dy-bdr)", height: 58 }}
     >
       <button
-        onClick={() => setView("dashboard")}
+        onClick={() => { if (!locked) setView("dashboard"); }}
         className="flex items-center gap-2 font-bold text-lg cursor-pointer"
-        style={{ color: "var(--dy-a)" }}
+        style={{ color: "var(--dy-a)", opacity: locked ? 0.7 : 1 }}
+        aria-label="MyDiary home"
       >
         <Book size={22} /> MyDiary
       </button>
@@ -59,9 +60,14 @@ export function Topbar() {
         <IconBtn onClick={() => setView("export")} title="Export">
           <Download size={16} />
         </IconBtn>
-        <IconBtn onClick={() => setView("lock")} title="Lock diary">
+        <IconBtn onClick={() => lock()} title="Lock diary">
           <Lock size={16} />
         </IconBtn>
+        {user && (
+          <IconBtn onClick={() => { if (confirm("Log out now?")) logout(); }} title="Log out">
+            <LogOut size={16} />
+          </IconBtn>
+        )}
         <button
           onClick={toggleDark}
           aria-label="Toggle dark mode"
