@@ -2,7 +2,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { INITIAL_ENTRIES, type Entry, type ViewId } from "./types";
 
 export type User = { id: string; username: string };
-type StoredUser = { id: string; username: string; passwordHash: string; pinHash: string };
+type StoredUser = {
+  id: string; username: string;
+  passwordHash: string; pinHash: string;
+  pwSalt?: string; pinSalt?: string; v?: number;
+};
 
 type SecuritySettings = {
   autoLock: boolean;
