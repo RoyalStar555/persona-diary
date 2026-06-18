@@ -60,9 +60,14 @@ export function Topbar() {
         <IconBtn onClick={() => setView("export")} title="Export">
           <Download size={16} />
         </IconBtn>
-        <IconBtn onClick={() => setView("lock")} title="Lock diary">
+        <IconBtn onClick={() => lock()} title="Lock diary">
           <Lock size={16} />
         </IconBtn>
+        {user && (
+          <IconBtn onClick={() => { if (confirm("Log out now?")) logout(); }} title="Log out">
+            <LogOut size={16} />
+          </IconBtn>
+        )}
         <button
           onClick={toggleDark}
           aria-label="Toggle dark mode"
