@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Book, Search, Flame, Bell, Download, Lock, Sun, Moon } from "lucide-react";
+import { Book, Search, Flame, Bell, Download, Lock, Sun, Moon, LogOut } from "lucide-react";
 import { useDiary } from "./DiaryContext";
 
 export function Topbar() {
-  const { setView, streak, dark, toggleDark, searchQuery, setSearchQuery } = useDiary();
+  const { setView, streak, dark, toggleDark, searchQuery, setSearchQuery, lock, logout, locked, user } = useDiary();
   const [notifDot] = useState(true);
 
   return (
