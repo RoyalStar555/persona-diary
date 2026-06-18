@@ -68,13 +68,13 @@ export function AuthView() {
   );
 }
 
-function Field({ label, value, onChange, type = "text", placeholder }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
+function Field({ label, value, onChange, type = "text", placeholder, autoComplete }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; autoComplete?: string;
 }) {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-[11px] font-semibold" style={{ color: "var(--dy-tx2)" }}>{label}</span>
-      <input value={value} onChange={(e) => onChange(e.target.value)} type={type} placeholder={placeholder}
+      <input value={value} onChange={(e) => onChange(e.target.value)} type={type} placeholder={placeholder} autoComplete={autoComplete}
         className="px-3 py-2 rounded-lg text-sm outline-none"
         style={{ border: "1.5px solid var(--dy-bdr)", background: "var(--dy-card)", color: "var(--dy-tx)" }} />
     </label>
