@@ -12,9 +12,10 @@ export function Topbar() {
       style={{ borderColor: "var(--dy-bdr)", height: 58 }}
     >
       <button
-        onClick={() => setView("dashboard")}
+        onClick={() => { if (!locked) setView("dashboard"); }}
         className="flex items-center gap-2 font-bold text-lg cursor-pointer"
-        style={{ color: "var(--dy-a)" }}
+        style={{ color: "var(--dy-a)", opacity: locked ? 0.7 : 1 }}
+        aria-label="MyDiary home"
       >
         <Book size={22} /> MyDiary
       </button>
