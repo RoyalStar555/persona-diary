@@ -186,17 +186,38 @@ export function DiaryProvider({ children }: { children: ReactNode }) {
   }
 
   // -------- AUTH ----------
+  // Best-effort constant-time string compare to mitigate timing leaks.
+  function safeEqual(a: string, b: string) {
+    if (a.length !== b.length) return false;
+    let r = 0;
+    for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return r === 0;
+  }
+
+  async function hashPassword(u: StoredUser, password: string) {
+    if (u.v === 2 && u.pwSalt) return pbkdf2(password, u.pwSalt);
+    return sha256(password + ":" + u.username.toLowerCase()); // legacy fallback
+  }
+  async function hashPin(u: StoredUser, pin: string) {
+    if (u.v === 2 && u.pinSalt) return pbkdf2(pin, u.pinSalt);
+    return sha256(pin + ":" + u.id); // legacy fallback
+  }
+
   const signup = useCallback(async (username: string, password: string, pin: string) => {
     username = username.trim();
-    if (!username || password.length < 4) return { ok: false, error: "Username and 4+ char password required." };
-    if (!/^\d{4}$/.test(pin)) return { ok: false, error: "PIN must be 4 digits." };
+    if (username.length < 3) return { ok: false, error: "Username must be at least 3 characters." };
+    if (!/^[a-zA-Z0-9_.-]+$/.test(username)) return { ok: false, error: "Username can only contain letters, numbers, _ . -" };
+    if (password.length < 8) return { ok: false, error: "Password must be at least 8 characters." };
+    if (!/^\d{4,8}$/.test(pin)) return { ok: false, error: "PIN must be 4-8 digits." };
     const users = readJSON<Record<string, StoredUser>>(K.users, {});
     if (users[username.toLowerCase()]) return { ok: false, error: "Username already exists." };
     const id = "u_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const pwSalt = randomSalt();
+    const pinSalt = randomSalt();
     const stored: StoredUser = {
-      id, username,
-      passwordHash: await sha256(password + ":" + username.toLowerCase()),
-      pinHash: await sha256(pin + ":" + id),
+      id, username, v: 2, pwSalt, pinSalt,
+      passwordHash: await pbkdf2(password, pwSalt),
+      pinHash: await pbkdf2(pin, pinSalt),
     };
     users[username.toLowerCase()] = stored;
     writeJSON(K.users, users);
@@ -211,11 +232,21 @@ export function DiaryProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
+    const key = username.trim().toLowerCase();
+    if (!key || !password) return { ok: false, error: "Enter username and password." };
     const users = readJSON<Record<string, StoredUser>>(K.users, {});
-    const u = users[username.trim().toLowerCase()];
-    if (!u) return { ok: false, error: "User not found." };
-    const h = await sha256(password + ":" + username.trim().toLowerCase());
-    if (h !== u.passwordHash) return { ok: false, error: "Incorrect password." };
+    const u = users[key];
+    // Always do work even if user missing, to avoid user-enumeration via timing.
+    const h = u ? await hashPassword(u, password) : await pbkdf2(password, "missing-user-salt");
+    if (!u || !safeEqual(h, u.passwordHash)) return { ok: false, error: "Incorrect username or password." };
+    // Transparently upgrade legacy hashes to v2 PBKDF2.
+    if (u.v !== 2) {
+      const pwSalt = randomSalt();
+      u.pwSalt = pwSalt; u.v = 2;
+      u.passwordHash = await pbkdf2(password, pwSalt);
+      users[key] = u;
+      writeJSON(K.users, users);
+    }
     writeJSON(K.session, { userId: u.id });
     setUser({ id: u.id, username: u.username });
     loadUserData(u.id);
@@ -230,6 +261,9 @@ export function DiaryProvider({ children }: { children: ReactNode }) {
     setEntries([]);
     setDraftState("");
     setSecurityState(DEFAULT_SEC);
+    setSearchQuery("");
+    setCategoryFilter("");
+    setEditEntry(null);
     setLocked(false);
     setView("auth");
   }, []);
@@ -239,8 +273,8 @@ export function DiaryProvider({ children }: { children: ReactNode }) {
     const users = readJSON<Record<string, StoredUser>>(K.users, {});
     const u = Object.values(users).find((x) => x.id === user.id);
     if (!u) return false;
-    const h = await sha256(pin + ":" + user.id);
-    return h === u.pinHash;
+    const h = await hashPin(u, pin);
+    return safeEqual(h, u.pinHash);
   }, [user]);
 
   // -------- BIOMETRICS (WebAuthn) ----------
