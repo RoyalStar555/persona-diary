@@ -1,3 +1,9 @@
+<img width="720" height="857" alt="1000140958" src="https://github.com/user-attachments/assets/0e211504-7625-431e-9a2f-c6f546185043" />
+<img width="720" height="878" alt="1000140957" src="https://github.com/user-attachments/assets/beb80e2c-9373-454d-bada-68d9a53fd02c" />
+<img width="720" height="874" alt="1000140959" src="https://github.com/user-attachments/assets/84ddd09c-c82e-4992-a41e-031a9155c432" />
+<img width="720" height="1396" alt="1000140956" src="https://github.com/user-attachments/assets/bb3671d3-2b93-4338-a5b8-578f37ca7bc9" />
+<img width="720" height="583" alt="1000140960" src="https://github.com/user-attachments/assets/369cb2af-5a97-4fbb-ae6b-f7b30e37b158" />
+<img width="425" height="483" alt="1000140961" src="https://github.com/user-attachments/assets/f2b589f8-f241-4cb8-804f-75a3f3dbdf08" />
 # Persona Diary 📔🔐
 
 > A modern, local-first digital diary built with a relentless focus on absolute privacy. Your thoughts actually belong to you.
