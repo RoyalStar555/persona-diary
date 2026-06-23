@@ -1,35 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { FileText, FileCode, ShieldCheck, Download, FolderArchive, HardDrive, File as FileIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { FileText, FileCode, ShieldCheck, Download, FolderArchive, File as FileIcon } from "lucide-react";
 import JSZip from "jszip";
 import { Card, PageTitle } from "../primitives";
 import { useDiary } from "../DiaryContext";
 import type { Entry } from "../types";
+import { StorageBar } from "../StorageBar";
 
-// ~5MB is the typical localStorage quota per origin in modern browsers.
-// We use 5MB as the visible ceiling — most browsers allow 5-10MB.
-const STORAGE_QUOTA_BYTES = 5 * 1024 * 1024;
-
-function fmtBytes(n: number) {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / 1024 / 1024).toFixed(2)} MB`;
-}
-
-function measureLocalStorage() {
-  let total = 0;
-  let mine = 0;
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (!k) continue;
-      const v = localStorage.getItem(k) ?? "";
-      const size = (k.length + v.length) * 2; // UTF-16
-      total += size;
-      if (k.startsWith("mydiary_")) mine += size;
-    }
-  } catch {}
-  return { total, mine };
-}
 
 function entryToMarkdown(e: Entry) {
   const date = e.date ?? `${e.mon} ${e.day}`;
