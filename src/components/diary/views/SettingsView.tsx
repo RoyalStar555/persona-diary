@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { AlertTriangle, Eraser } from "lucide-react";
+import { AlertTriangle, Eraser, Download } from "lucide-react";
 import { useDiary } from "../DiaryContext";
 import { Card, PageTitle } from "../primitives";
 import { Toggle } from "./SecurityView";
+import { StorageBar } from "../StorageBar";
+
 
 const SWATCHES: [string, string, string][] = [
   ["amber", "#C8820A", "Warm amber"],
