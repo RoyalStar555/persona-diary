@@ -46,13 +46,6 @@ export function ExportView() {
   const [format, setFormat] = useState<"md" | "txt" | "json">("md");
   const [busy, setBusy] = useState(false);
 
-  const [storage, setStorage] = useState(() => measureLocalStorage());
-  useEffect(() => {
-    setStorage(measureLocalStorage());
-  }, [entries]);
-
-  const pct = Math.min(100, (storage.total / STORAGE_QUOTA_BYTES) * 100);
-  const barColor = pct > 85 ? "#C24A1C" : pct > 60 ? "#C8820A" : "#3B6D11";
 
   const filtered = useMemo(() => {
     return entries.filter((e) => {
