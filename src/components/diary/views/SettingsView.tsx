@@ -22,9 +22,20 @@ export function SettingsView() {
 
 
   return (
-    <div className="p-5">
+    <div className="p-5 space-y-4">
       <PageTitle title="Customise" sub="Make your diary uniquely yours" />
+
       <Card>
+        <StorageBar />
+        <button onClick={() => setView("export")}
+          className="mt-3 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg cursor-pointer"
+          style={{ border: "1.5px solid var(--dy-bdr)", background: "var(--dy-card)", color: "var(--dy-tx2)" }}>
+          <Download size={13} /> Export & backup entries
+        </button>
+      </Card>
+
+      <Card>
+
         <Row label="Theme colour" sub="Pick your accent palette">
           <div className="flex gap-2 flex-wrap">
             {SWATCHES.map(([n, c, t]) => (
