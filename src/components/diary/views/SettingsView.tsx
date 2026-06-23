@@ -16,9 +16,10 @@ const SWATCHES: [string, string, string][] = [
 ];
 
 export function SettingsView() {
-  const { themeName, setTheme, dark, toggleDark, factoryReset, clearDrafts, draft } = useDiary();
+  const { themeName, setTheme, dark, toggleDark, factoryReset, clearDrafts, draft, setView } = useDiary();
   const [confirming, setConfirming] = useState(false);
   const [draftMsg, setDraftMsg] = useState("");
+
 
   return (
     <div className="p-5">
