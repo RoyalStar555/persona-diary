@@ -1,35 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { FileText, FileCode, ShieldCheck, Download, FolderArchive, HardDrive, File as FileIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { FileText, FileCode, ShieldCheck, Download, FolderArchive, File as FileIcon } from "lucide-react";
 import JSZip from "jszip";
 import { Card, PageTitle } from "../primitives";
 import { useDiary } from "../DiaryContext";
 import type { Entry } from "../types";
+import { StorageBar } from "../StorageBar";
 
-// ~5MB is the typical localStorage quota per origin in modern browsers.
-// We use 5MB as the visible ceiling — most browsers allow 5-10MB.
-const STORAGE_QUOTA_BYTES = 5 * 1024 * 1024;
-
-function fmtBytes(n: number) {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / 1024 / 1024).toFixed(2)} MB`;
-}
-
-function measureLocalStorage() {
-  let total = 0;
-  let mine = 0;
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (!k) continue;
-      const v = localStorage.getItem(k) ?? "";
-      const size = (k.length + v.length) * 2; // UTF-16
-      total += size;
-      if (k.startsWith("mydiary_")) mine += size;
-    }
-  } catch {}
-  return { total, mine };
-}
 
 function entryToMarkdown(e: Entry) {
   const date = e.date ?? `${e.mon} ${e.day}`;
@@ -70,13 +46,6 @@ export function ExportView() {
   const [format, setFormat] = useState<"md" | "txt" | "json">("md");
   const [busy, setBusy] = useState(false);
 
-  const [storage, setStorage] = useState(() => measureLocalStorage());
-  useEffect(() => {
-    setStorage(measureLocalStorage());
-  }, [entries]);
-
-  const pct = Math.min(100, (storage.total / STORAGE_QUOTA_BYTES) * 100);
-  const barColor = pct > 85 ? "#C24A1C" : pct > 60 ? "#C8820A" : "#3B6D11";
 
   const filtered = useMemo(() => {
     return entries.filter((e) => {
@@ -100,27 +69,50 @@ export function ExportView() {
     mode === "year" ? year :
     `${from || "…"}_to_${to || "…"}`;
 
-  async function exportFolder() {
-    if (!filtered.length) {
+  function computeFiltered(m: RangeMode): Entry[] {
+    return entries.filter((e) => {
+      if (!e.date) return m === "all";
+      const d = e.date;
+      if (m === "all") return true;
+      if (m === "month") return d.startsWith(month);
+      if (m === "year") return d.startsWith(year);
+      if (m === "custom") {
+        if (from && d < from) return false;
+        if (to && d > to) return false;
+        return true;
+      }
+      return true;
+    });
+  }
+
+  async function exportFolder(overrideMode?: RangeMode, overrideFormat?: "md" | "txt" | "json") {
+    const m = overrideMode ?? mode;
+    const f = overrideFormat ?? format;
+    const items = overrideMode ? computeFiltered(m) : filtered;
+    const label =
+      m === "all" ? "all entries" :
+      m === "month" ? month :
+      m === "year" ? year :
+      `${from || "…"}_to_${to || "…"}`;
+
+    if (!items.length) {
       alert("No entries match this range.");
       return;
     }
     setBusy(true);
     try {
       const zip = new JSZip();
-      const folder = zip.folder(`diary_${rangeLabel}`)!;
-      // Index
-      const idx = filtered
+      const folder = zip.folder(`diary_${label}`)!;
+      const idx = items
         .slice()
         .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))
         .map((e) => `- ${e.date ?? ""}  ${e.title}  (${e.mood})`)
         .join("\n");
-      folder.file("INDEX.md", `# Diary Export — ${rangeLabel}\n\nUser: ${user?.username ?? "anonymous"}\nEntries: ${filtered.length}\nExported: ${new Date().toISOString()}\n\n${idx}\n`);
-      // One file per entry
-      for (const e of filtered) {
+      folder.file("INDEX.md", `# Diary Export — ${label}\n\nUser: ${user?.username ?? "anonymous"}\nEntries: ${items.length}\nExported: ${new Date().toISOString()}\n\n${idx}\n`);
+      for (const e of items) {
         const base = `${e.date ?? "undated"}_${safeFile(e.title)}`;
-        if (format === "md") folder.file(`${base}.md`, entryToMarkdown(e));
-        else if (format === "txt") folder.file(`${base}.txt`, entryToText(e));
+        if (f === "md") folder.file(`${base}.md`, entryToMarkdown(e));
+        else if (f === "txt") folder.file(`${base}.txt`, entryToText(e));
         else folder.file(`${base}.json`, JSON.stringify(e, null, 2));
         if (e.sketch?.startsWith("data:image")) {
           const b64 = e.sketch.split(",")[1];
@@ -128,11 +120,15 @@ export function ExportView() {
         }
       }
       const blob = await zip.generateAsync({ type: "blob" });
-      download(blob, `diary_${rangeLabel}.zip`);
+      download(blob, `diary_${label}.zip`);
+    } catch (err) {
+      console.error("Export failed", err);
+      alert("Export failed. See console for details.");
     } finally {
       setBusy(false);
     }
   }
+
 
   function exportJsonBackup() {
     const blob = new Blob([JSON.stringify(entries, null, 2)], { type: "application/json" });
@@ -145,21 +141,9 @@ export function ExportView() {
 
       {/* Storage bar */}
       <Card>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: "var(--dy-tx)" }}>
-            <HardDrive size={15} /> Local storage
-          </div>
-          <div className="text-[11px]" style={{ color: "var(--dy-tx3)" }}>
-            {fmtBytes(storage.total)} / ~{fmtBytes(STORAGE_QUOTA_BYTES)} ({pct.toFixed(1)}%)
-          </div>
-        </div>
-        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "var(--dy-ap)" }}>
-          <div className="h-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
-        </div>
-        <div className="text-[11px] mt-2" style={{ color: "var(--dy-tx3)" }}>
-          Your diary uses {fmtBytes(storage.mine)} across {entries.length} entries. Browsers typically allow ~5 MB per site for offline storage — roughly 2,500–5,000 typical journal entries. Export regularly to keep a backup.
-        </div>
+        <StorageBar />
       </Card>
+
 
       {/* Range picker */}
       <Card>
@@ -223,7 +207,7 @@ export function ExportView() {
           <div className="text-[12px]" style={{ color: "var(--dy-tx3)" }}>
             {filtered.length} entr{filtered.length === 1 ? "y" : "ies"} will be included
           </div>
-          <button onClick={exportFolder} disabled={busy || !filtered.length}
+          <button onClick={() => exportFolder()} disabled={busy || !filtered.length}
             className="px-4 py-2 rounded-full text-[13px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
             style={{ background: "var(--dy-a)", color: "#fff" }}>
             <Download size={15} /> {busy ? "Packing…" : "Download .zip"}
@@ -247,7 +231,7 @@ export function ExportView() {
           </div>
           <Download size={17} style={{ color: "var(--dy-tx3)" }} />
         </div>
-        <div onClick={() => { setMode("all"); setFormat("md"); exportFolder(); }}
+        <div onClick={() => exportFolder("all", "md")}
           className="flex items-center justify-between px-3.5 py-3 rounded-xl mb-2 cursor-pointer"
           style={{ border: "1.5px solid var(--dy-bdr)" }}>
           <div>
@@ -260,7 +244,7 @@ export function ExportView() {
           </div>
           <FolderArchive size={17} style={{ color: "var(--dy-tx3)" }} />
         </div>
-        <div onClick={() => { setMode("all"); setFormat("txt"); exportFolder(); }}
+        <div onClick={() => exportFolder("all", "txt")}
           className="flex items-center justify-between px-3.5 py-3 rounded-xl cursor-pointer"
           style={{ border: "1.5px solid var(--dy-bdr)" }}>
           <div>
