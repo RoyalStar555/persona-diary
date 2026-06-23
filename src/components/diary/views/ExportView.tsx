@@ -69,27 +69,50 @@ export function ExportView() {
     mode === "year" ? year :
     `${from || "…"}_to_${to || "…"}`;
 
-  async function exportFolder() {
-    if (!filtered.length) {
+  function computeFiltered(m: RangeMode): Entry[] {
+    return entries.filter((e) => {
+      if (!e.date) return m === "all";
+      const d = e.date;
+      if (m === "all") return true;
+      if (m === "month") return d.startsWith(month);
+      if (m === "year") return d.startsWith(year);
+      if (m === "custom") {
+        if (from && d < from) return false;
+        if (to && d > to) return false;
+        return true;
+      }
+      return true;
+    });
+  }
+
+  async function exportFolder(overrideMode?: RangeMode, overrideFormat?: "md" | "txt" | "json") {
+    const m = overrideMode ?? mode;
+    const f = overrideFormat ?? format;
+    const items = overrideMode ? computeFiltered(m) : filtered;
+    const label =
+      m === "all" ? "all entries" :
+      m === "month" ? month :
+      m === "year" ? year :
+      `${from || "…"}_to_${to || "…"}`;
+
+    if (!items.length) {
       alert("No entries match this range.");
       return;
     }
     setBusy(true);
     try {
       const zip = new JSZip();
-      const folder = zip.folder(`diary_${rangeLabel}`)!;
-      // Index
-      const idx = filtered
+      const folder = zip.folder(`diary_${label}`)!;
+      const idx = items
         .slice()
         .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))
         .map((e) => `- ${e.date ?? ""}  ${e.title}  (${e.mood})`)
         .join("\n");
-      folder.file("INDEX.md", `# Diary Export — ${rangeLabel}\n\nUser: ${user?.username ?? "anonymous"}\nEntries: ${filtered.length}\nExported: ${new Date().toISOString()}\n\n${idx}\n`);
-      // One file per entry
-      for (const e of filtered) {
+      folder.file("INDEX.md", `# Diary Export — ${label}\n\nUser: ${user?.username ?? "anonymous"}\nEntries: ${items.length}\nExported: ${new Date().toISOString()}\n\n${idx}\n`);
+      for (const e of items) {
         const base = `${e.date ?? "undated"}_${safeFile(e.title)}`;
-        if (format === "md") folder.file(`${base}.md`, entryToMarkdown(e));
-        else if (format === "txt") folder.file(`${base}.txt`, entryToText(e));
+        if (f === "md") folder.file(`${base}.md`, entryToMarkdown(e));
+        else if (f === "txt") folder.file(`${base}.txt`, entryToText(e));
         else folder.file(`${base}.json`, JSON.stringify(e, null, 2));
         if (e.sketch?.startsWith("data:image")) {
           const b64 = e.sketch.split(",")[1];
@@ -97,11 +120,15 @@ export function ExportView() {
         }
       }
       const blob = await zip.generateAsync({ type: "blob" });
-      download(blob, `diary_${rangeLabel}.zip`);
+      download(blob, `diary_${label}.zip`);
+    } catch (err) {
+      console.error("Export failed", err);
+      alert("Export failed. See console for details.");
     } finally {
       setBusy(false);
     }
   }
+
 
   function exportJsonBackup() {
     const blob = new Blob([JSON.stringify(entries, null, 2)], { type: "application/json" });
