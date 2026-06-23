@@ -244,7 +244,7 @@ export function ExportView() {
           </div>
           <FolderArchive size={17} style={{ color: "var(--dy-tx3)" }} />
         </div>
-        <div onClick={() => { setMode("all"); setFormat("txt"); exportFolder(); }}
+        <div onClick={() => exportFolder("all", "txt")}
           className="flex items-center justify-between px-3.5 py-3 rounded-xl cursor-pointer"
           style={{ border: "1.5px solid var(--dy-bdr)" }}>
           <div>
