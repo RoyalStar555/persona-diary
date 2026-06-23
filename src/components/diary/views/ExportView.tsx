@@ -114,21 +114,9 @@ export function ExportView() {
 
       {/* Storage bar */}
       <Card>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: "var(--dy-tx)" }}>
-            <HardDrive size={15} /> Local storage
-          </div>
-          <div className="text-[11px]" style={{ color: "var(--dy-tx3)" }}>
-            {fmtBytes(storage.total)} / ~{fmtBytes(STORAGE_QUOTA_BYTES)} ({pct.toFixed(1)}%)
-          </div>
-        </div>
-        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "var(--dy-ap)" }}>
-          <div className="h-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
-        </div>
-        <div className="text-[11px] mt-2" style={{ color: "var(--dy-tx3)" }}>
-          Your diary uses {fmtBytes(storage.mine)} across {entries.length} entries. Browsers typically allow ~5 MB per site for offline storage — roughly 2,500–5,000 typical journal entries. Export regularly to keep a backup.
-        </div>
+        <StorageBar />
       </Card>
+
 
       {/* Range picker */}
       <Card>
