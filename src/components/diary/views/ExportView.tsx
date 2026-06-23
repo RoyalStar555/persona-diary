@@ -207,7 +207,7 @@ export function ExportView() {
           <div className="text-[12px]" style={{ color: "var(--dy-tx3)" }}>
             {filtered.length} entr{filtered.length === 1 ? "y" : "ies"} will be included
           </div>
-          <button onClick={exportFolder} disabled={busy || !filtered.length}
+          <button onClick={() => exportFolder()} disabled={busy || !filtered.length}
             className="px-4 py-2 rounded-full text-[13px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
             style={{ background: "var(--dy-a)", color: "#fff" }}>
             <Download size={15} /> {busy ? "Packing…" : "Download .zip"}
